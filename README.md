@@ -35,11 +35,17 @@ scoring.py can be implemented in any way you see fit. The default implementation
 ## The Process
 1. Run fetchmail. The -B option lets you limit the number of emails. This is also intended to be placed in a cron job.
 2. Process the emails with email_to_db.py
-3. Run process_emails.py.
-4. Retrieve RT tickets with process_rt.py
-5. Download and submit samples to the mwzoo with process_downloads.py
+3. Review alerts with review_alerts.py
+4. Download and submit samples to your analysis module with process_downloads.py
+
+## Automation
+Currently, automation occurs via crontab. You want to automate the following tasks:
+* fetchmail
+* email_to_db.py
+* process_downloads.py
+
+At some point, the functionality of email_to_db.py can be moved to fetchmail_processor.py. I just haven't done this yet.
 
 ## Optional malware selection process
 * TODO: Configure "no review", aka direct download from email hits. Based on keywords from the rule name perhaps?
-* TODO: Create a shell review script to download samples
-* TODO: Modularize process_emails.py.
+* TODO: Create analysis module.
