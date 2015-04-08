@@ -1,0 +1,12 @@
+*.pyc
+*.swp
+*.swo
+local_settings.py
+vtmis.sqlite3
+incoming/
+email/
+hashes/
+raw_msgs/
+*-repo
+campaign_translation.db
+vtmis/scoring.py

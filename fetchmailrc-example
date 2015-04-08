@@ -1,0 +1,1 @@
+poll emailserver.com protocol imap user "vtmis.functional@email.com" password "yourpass" is "yourusername" here options ssl sslfingerprint "79:24:DF:5A:39:92:C2:4E:A1:1C:67:E5:59:3D:98:43" mda "python $VTPATH/vt-hunter/fetchmail_processor.py"
