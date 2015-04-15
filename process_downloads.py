@@ -4,14 +4,20 @@ from __future__ import print_function
 import sys, os
 import hunting
 from subprocess import call
+import analysis
+
+from configparser import ConfigParser
 
 try:
-    import local_settings as settings
+    config = ConfigParser()
+    config.read('local_settings.ini')
 except ImportError:
-    raise SystemExit('local_settings.py was not found or was not accessible.')
+    raise SystemExit('local_settings.ini was not found or was not accessible.')
 
-if not os.path.exists(settings.DOWNLOADS_DIR):
-    os.mkdir(settings.DOWNLOADS_DIR)
+downloads = config.get('locations', 'downloads')
+
+if not os.path.exists(downloads):
+    os.mkdir(downloads)
 
 # Gather md5s of malware to download
 downloads = hunting.sess.query(hunting.Download).filter(hunting.Download.process_state == '1').all()
@@ -29,8 +35,35 @@ if len(downloads) > 0:
             hunting.sess.commit()
 
 # Submit the sample for automated analysis
-# TODO: Do file type determination with exiftool
-# TODO: If file not determined, move to a review directory
+# Import enabled modules.
+analysis_modules = []
+for section in config:
+    if "analysis_module_" in section:
+        if not config.getboolean(section, "enabled"):
+            continue
+
+        module_name = config.get(section, "name")
+        try:
+            _module = importlib.import_module(module_name)
+        except Exception as e:
+            print("Unable to import module {0}: {1}".format(module_name, str(e)))
+            continue
+
+        class_name = config.get(section, "class")
+        try:
+            module_class = getattr(_module, class_name)
+        except Exception as e:
+            print("Unable to load module class {0}: {1}".format(module_class, str(e)))
+            continue
+
+        try:
+            analysis_module = module_class(section)
+        except Exception as e:
+            print("Unable to load analysis module {0}: {1}".format(section, str(e)))
+            continue
+
+        analysis_modules.append(analysis_module)
+
 to_analysis = hunting.sess.query(hunting.Download).filter(hunting.Download.process_state == '2').all()
 for download in to_analysis:
     print('Submitting {0} for analysis'.format(download.md5))
@@ -45,19 +78,22 @@ for download in to_analysis:
         hunting.sess.commit()
         continue
 
-    # Format: File Location, rule list, 
-    analysis_module.submit_sample(settings.DOWNLOAD_DIR + download.md5, rule_list)
-    # TODO: Move call to analysis module
-    # call([])
+    # Format: File Location, rule list,
+    for module in analysis_modules:
+        module.submit_sample(downloads + download.md5, rule_list)
+
+    # Change state to 'processing'
     download.process_state = '3'
     hunting.sess.commit()
 
 # Check analysis statuses
 check_analysis = hunting.sess.query(hunting.Download).filter(hunting.Download.process_state == '3').all()
+combined_status = True
 for download in check_analysis:
-    # TODO: Need to check if the file exists
-    status = analysis_module.check_status(settings.DOWNLOADS_DIR + download.md5)
-    if status == "True":
-        # True means the sample is finished
-        download.process_state = '4'
-        hunting.sess.commit()
+    for module in analysis_modules:
+        combined_status = module.check_status(downloads + download.md5)
+
+if combined_status:
+    # Change state to 'completed'
+    download.process_state = '4'
+    hunting.sess.commit()

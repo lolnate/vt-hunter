@@ -7,6 +7,8 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import relationship, backref
 
+from configparser import ConfigParser
+
 import os
 
 Base = declarative_base()
@@ -34,7 +36,7 @@ class Hit(Base):
 
     def __repr__(self):
         return "<Hit(%d, %s, %s)>" % (self.id, self.md5, self.download)
-    
+
 class Download(Base):
     __tablename__ = "download"
 
@@ -56,17 +58,17 @@ class Download(Base):
         return "<Download(%d, %s, %s, %d)>" % (self.id, self.md5, self.sha1, self.process_state)
 
 try:
-    import local_settings as settings
+    config = ConfigParser()
+    config.read('local_settings.ini')
 except ImportError:
-    raise SystemExit('local_settings.py was not found or was not accessible.')
+    raise SystemExit('local_settings.ini was not found or was not accessible.')
 
-engine = create_engine("sqlite:///%s" % (settings.SQLITE_DB))
+engine = create_engine("sqlite:///{0}".format(config.get("locations", "sqlite_db")))
 Base.metadata.create_all(engine)
 sess = sessionmaker(bind=engine)()
-    
+
 
 if __name__ == "__main__":
-    
     results =  sess.query(Hit).all()
     print results
     results[0].md5 = "1"

@@ -17,24 +17,29 @@ import hunting
 
 from vtmis.utilities import *
 from vtmis.scoring import *
+from configparser import ConfigParser
 
 try:
-    import local_settings as settings
+    config = ConfigParser()
+    config.read('local_settings.ini')
 except ImportError:
-    raise SystemExit('local_settings.py was not found or was not accessible.')
+    raise SystemExit('local_settings.ini was not found or was not accessible.')
 
 scoring = get_scoring_dict()
+incoming_emails = config.get("locations", "incoming_emails")
+processed_emails = config.get("locations", "processed_emails")
+raw_msgs = config.get("locations", "raw_msgs")
 
 # These are new incoming emails
-if not os.path.exists(settings.INCOMING_DIR):
+if not os.path.exists(incoming_emails):
     print "There is no incoming email directory!"
     exit(1)
 # This is where archived emails go that have already by processed
-if not os.path.exists(settings.PROCESSED_EMAIL_DIR):
-    os.mkdir(settings.PROCESSED_EMAIL_DIR)
+if not os.path.exists(processed_emails):
+    os.mkdir(processed_emails)
 # This is where raw messages for Alertweb go
-if not os.path.exists(settings.RAW_MSG_DIR):
-    os.mkdir(settings.RAW_MSG_DIR)
+if not os.path.exists(raw_msgs):
+    os.mkdir(raw_msgs)
 # Limit for the number of emails to process this time. Mainly used for testing.
 # Set to 0 for unlimited.
 LIMIT = 0
@@ -50,11 +55,11 @@ re_rule = re.compile('\[VTMIS\]\[[a-f0-9]+\]\s(.*)$')
 re_first_country = re.compile(r'First country\s*:\s+([A-Za-z]{2})')
 re_first_source = re.compile(r'First source\s+:\s+([a-z0-9]{8})\s+\(([a-z0-9A-Z]+)\)')
 
-incoming_count = len(os.listdir(settings.INCOMING_DIR))
+incoming_count = len(os.listdir(incoming_emails))
 total_processed = 0
 
-for f in os.listdir(settings.INCOMING_DIR):
-    if os.path.isdir(settings.INCOMING_DIR + "/" + f):
+for f in os.listdir(incoming_emails):
+    if os.path.isdir(incoming_emails + "/" + f):
         continue
     if LIMIT > 0 and total_processed >= LIMIT:
         continue
@@ -64,7 +69,7 @@ for f in os.listdir(settings.INCOMING_DIR):
     total_processed += 1
 
     # Read our email
-    fin = open(settings.INCOMING_DIR + "/" + f, 'r')
+    fin = open(incoming_emails + "/" + f, 'r')
     fstr = fin.read()
     fin.close()
 
@@ -128,7 +133,7 @@ for f in os.listdir(settings.INCOMING_DIR):
                 first_source_type = match_first_source.group(2)
             if match_first_country:
                 first_country = match_first_country.group(1)
-                
+
         # Get time for file paths
         utctime = time.gmtime()
         utctimestr = time.strftime("%Y-%m-%d", utctime)
@@ -157,12 +162,12 @@ for f in os.listdir(settings.INCOMING_DIR):
         # Convert the raw message to html and write it out
         # This file will get attached to the alertweb alert as part of the details
         # page
-        if not os.path.exists(settings.RAW_MSG_DIR + "/" + utctimestr):
-            os.mkdir(settings.RAW_MSG_DIR + "/" + utctimestr)
-        if not os.path.exists(settings.PROCESSED_EMAIL_DIR + "/" + utctimestr):
-            os.mkdir(settings.PROCESSED_EMAIL_DIR + "/" + utctimestr)
+        if not os.path.exists(raw_msgs + "/" + utctimestr):
+            os.mkdir(raw_msgs + "/" + utctimestr)
+        if not os.path.exists(processed_emails + "/" + utctimestr):
+            os.mkdir(processed_emails + "/" + utctimestr)
         raw_msg_html = convert_msg_to_html(raw_msg_text)
-        fout = open(settings.RAW_MSG_DIR + raw_email_html, "w")
+        fout = open(raw_msgs + raw_email_html, "w")
         fout.write(raw_msg_html)
         fout.close()
-        os.rename(settings.INCOMING_DIR + f, settings.PROCESSED_EMAIL_DIR + email_archive)
+        os.rename(incoming_emails + f, processed_emails + email_archive)

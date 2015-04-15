@@ -3,14 +3,18 @@ import os
 import sys
 import re
 import uuid
+from configparser import ConfigParser
 
 try:
-    import local_settings as settings
+    config = ConfigParser()
+    config.read('local_settings.ini')
 except ImportError:
-    raise SystemExit('local_settings.py was not found or was not accessible.')
+    raise SystemExit('local_settings.ini was not found or was not accessible.')
 
-if not os.path.exists(settings.INCOMING_DIR):
-    os.mkdir(settings.INCOMING_DIR)
+incoming_emails = config.get('locations', 'incoming_emails')
+
+if not os.path.exists(incoming_emails):
+    os.mkdir(incoming_emails)
 
 fname = str(uuid.uuid4())
 fstr = ""
@@ -27,6 +31,6 @@ for line in sys.stdin:
     else:
         fstr = fstr + line + '\n'
 
-fout = open(settings.INCOMING_DIR + fname, 'w')
+fout = open(incoming_emails + fname, 'w')
 fout.write(fstr)
 fout.close()

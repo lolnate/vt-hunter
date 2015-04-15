@@ -1,7 +1,7 @@
 *.pyc
 *.swp
 *.swo
-local_settings.py
+local_settings.ini
 vtmis.sqlite3
 incoming/
 email/

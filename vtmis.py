@@ -6,6 +6,8 @@ import sys
 import os
 import requests
 
+from configparser import ConfigParser
+
 class vtAPI():
     def __init__(self, settings):
         self.base = 'https://www.virustotal.com/vtapi/v2/'
@@ -13,14 +15,14 @@ class vtAPI():
 
     def downloadFile(self, vthash):
         try:
-            param = {'hash': md5, 'apikey': self.settings.VT_API_LOCAL}
+            param = {'hash': md5, 'apikey': self.config.vt.api_local}
             url = self.base + 'file/download'
             data = urllib.urlencode(param)
             req = urllib2.Request(url, data)
             result = urllib2.urlopen(req)
             downloadedfile = result.read()
             if len(downloadedfile) > 0:
-                fout = open(settings.VT_API_LOCAL + name, 'w')
+                fout = open(config.get('vt', 'api_local') + name, 'w')
                 fout.write(downloadedfile)
                 fout.close()
                 return 0
@@ -39,18 +41,19 @@ def parse_arguments():
     return opt.parse_args()
 
 def main():
-    try:
-        import local_settings as settings
-    except ImportError:
-        raise SystemExit('local_settings.py was not found or was not accessible.')
+try:
+    config = ConfigParser()
+    config.read('local_settings.ini')
+except ImportError:
+    raise SystemExit('local_settings.ini was not found or was not accessible.')
 
-    os.environ["http_proxy"] = settings.HTTP_PROXY
-    os.environ["https_proxy"] = settings.HTTPS_PROXY
+    os.environ["http_proxy"] = config.get('proxy', 'http')
+    os.environ["https_proxy"] = config.get('proxy', 'https')
 
     options = parse_arguments()
     vt = vtAPI()
     if options.download:
-        retcode = vt.downloadFile(md5, md5, settings.DOWNLOADS_DIR)
+        retcode = vt.downloadFile(md5, md5, config.get('locations', 'downloads')
         if retcode > 0:
             return retcode
     return 0

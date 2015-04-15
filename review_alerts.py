@@ -5,10 +5,15 @@ import email
 
 from vtmis.scoring import *
 
-try:        
-    import local_settings as settings
+from configparser import ConfigParser
+
+try:
+    config = ConfigParser()
+    config.read('local_settings.ini')
 except ImportError:
-    raise SystemExit('local_settings.py was not found or was not accessible.')
+    raise SystemExit('local_settings.ini was not found or was not accessible.')
+
+raw_msgs = config.get("locations", "raw_msgs")
 
 def display_normal(stdscr, dl):
     # Get the rule 'tags'
@@ -41,7 +46,7 @@ def display_raw(stdscr, dl):
     if lines_available < 0:
         return
 
-    fin = open(settings.RAW_MSG_DIR + first_hit.raw_email_html, "r")
+    fin = open(raw_msgs + first_hit.raw_email_html, "r")
     text = fin.read().split('<br />')
     fin.close()
     line_num = 1
@@ -58,7 +63,7 @@ def main():
     curses.noecho()
     curses.cbreak()
     stdscr.keypad(1)
-    
+
     curses.start_color()
     scrsize = stdscr.getmaxyx()
 
