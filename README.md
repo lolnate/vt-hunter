@@ -46,6 +46,42 @@ Currently, automation occurs via crontab. You want to automate the following tas
 
 At some point, the functionality of email_to_db.py can be moved to fetchmail_processor.py. I just haven't done this yet.
 
+## Analysis Modules
+process_downloads.py is capable of submitting downloaded samples to any automated analysis you might have. To do so, create an analysis module in the analysis/ directory. You must do the following:
+* Create your_analysis_module.py in analysis/
+** Implement the methods in analysis.py
+* Add your_analysis_module to analysis/__init__.py
+* Add your_analysis_module section to local_settings.ini
+
+For example, if your_analysis_module looked like the following:
+
+```
+import analysis
+
+class YourAnalysisModule(analysis.AnalysisModule):
+
+    def analyze_sample(self, filename='', tags=[]):
+        # Do any analysis steps you want here. This could launch an external
+	# script or be entirely self contained.
+	print('Opening file: ' + filename)
+
+    def check_status(self, filename=''):
+	# This determines when a file has completed analysis. If you don't
+	# want to deal with this, just return True
+	print('Analysis completed.')
+	return True
+```
+
+You would then add the following section to local_settings.ini:
+
+```
+[analysis_module_your_analysis_module]
+module = analysis.your_analysis_module
+class = YourAnalysisModule 
+enabled = yes
+```
+
+Notice the "your_analysis_module" parts are the exact same as your_analysis_module.py. This convention is important to follow.
+
 ## Optional malware selection process
 * TODO: Configure "no review", aka direct download from email hits. Based on keywords from the rule name perhaps?
-* TODO: Create analysis module.
