@@ -39,6 +39,11 @@ scoring.py can be implemented in any way you see fit. The default implementation
 3. Review alerts with review_alerts.py
 4. Download and submit samples to your analysis module with process_downloads.py
 
+NOTE: When running in crontab, you need to cd to the vt-hunter directory first. Like so:
+```
+*/15 * * * *    cd /path/to/vt-hunter && /usr/bin/fetchmail >> /path/to/log/fetchmail.log
+```
+
 ## Automation
 Currently, automation occurs via crontab. You want to automate the following tasks:
 * fetchmail
