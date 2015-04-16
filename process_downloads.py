@@ -2,10 +2,11 @@
 from __future__ import print_function
 
 import sys, os
+import importlib
 import hunting
-from subprocess import call
 import analysis
 
+from subprocess import call
 from configparser import ConfigParser
 
 try:
@@ -14,25 +15,25 @@ try:
 except ImportError:
     raise SystemExit('local_settings.ini was not found or was not accessible.')
 
-downloads = config.get('locations', 'downloads')
+downloads_dir = config.get('locations', 'downloads')
 
-if not os.path.exists(downloads):
-    os.mkdir(downloads)
+if not os.path.exists(downloads_dir):
+    os.mkdir(downloads_dir)
 
 # Gather md5s of malware to download
-downloads = hunting.sess.query(hunting.Download).filter(hunting.Download.process_state == '1').all()
-if len(downloads) > 0:
-    for download in downloads:
-        # Download it
-        rcode = call(["./vtmis.py", "-d", download.md5])
-        if rcode > 0:
-            print('Error: MD5 {0} not downloaded with downloader script.'.format(download.md5))
-            download.process_state = '6'
-            hunting.sess.commit()
-        else:
-            print("File downloaded successfully.")
-            download.process_state = '2'
-            hunting.sess.commit()
+downloads = hunting.sess.query(hunting.Download).filter(hunting.Download.process_state == '1').limit(1)
+for download in downloads:
+    # Download it
+    print('Downloading ' + download.md5)
+    rcode = call(["./vtmis.py", "-d", download.md5])
+    if rcode > 0:
+        print('Error: MD5 {0} not downloaded with downloader script.'.format(download.md5))
+        download.process_state = '6'
+        hunting.sess.commit()
+    else:
+        print("File downloaded successfully.")
+        download.process_state = '2'
+        hunting.sess.commit()
 
 # Submit the sample for automated analysis
 # Import enabled modules.
@@ -42,7 +43,7 @@ for section in config:
         if not config.getboolean(section, "enabled"):
             continue
 
-        module_name = config.get(section, "name")
+        module_name = config.get(section, "module")
         try:
             _module = importlib.import_module(module_name)
         except Exception as e:
@@ -57,7 +58,7 @@ for section in config:
             continue
 
         try:
-            analysis_module = module_class(section)
+            analysis_module = module_class(str(section))
         except Exception as e:
             print("Unable to load analysis module {0}: {1}".format(section, str(e)))
             continue
@@ -80,7 +81,7 @@ for download in to_analysis:
 
     # Format: File Location, rule list,
     for module in analysis_modules:
-        module.submit_sample(downloads + download.md5, rule_list)
+        module.analyze_sample(downloads_dir + download.md5, rule_list)
 
     # Change state to 'processing'
     download.process_state = '3'
@@ -91,9 +92,9 @@ check_analysis = hunting.sess.query(hunting.Download).filter(hunting.Download.pr
 combined_status = True
 for download in check_analysis:
     for module in analysis_modules:
-        combined_status = module.check_status(downloads + download.md5)
+        combined_status = module.check_status(downloads_dir + download.md5)
 
-if combined_status:
-    # Change state to 'completed'
-    download.process_state = '4'
-    hunting.sess.commit()
+    if combined_status:
+        # Change state to 'completed'
+        download.process_state = '4'
+        hunting.sess.commit()

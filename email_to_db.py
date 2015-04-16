@@ -154,7 +154,7 @@ for f in os.listdir(incoming_emails):
             if dl is None:
                 dl = hunting.Download(md5=md5, sha1=sha1, score=0, process_state=0)
             # Now we write all the data we scraped to the DB
-            hit = hunting.Hit(md5=md5, sha1=sha1, sha256=sha256, rule=rule, processed=0, created_at=created_at, first_source=first_source, first_country=first_country, file_type=filetype, first_source_type=first_source_type, orig_file_name=orig_file_name, raw_email_html=raw_email_html, email_archive=email_archive, score=get_string_score(rule), download=dl)
+            hit = hunting.Hit(md5=md5, sha1=sha1, sha256=sha256, rule=rule, created_at=created_at, first_source=first_source, first_country=first_country, file_type=filetype, first_source_type=first_source_type, orig_file_name=orig_file_name, raw_email_html=raw_email_html, email_archive=email_archive, score=get_string_score(rule), download=dl)
             dl.score += hit.score
             hunting.sess.add(hit)
             hunting.sess.commit()

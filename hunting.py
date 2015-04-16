@@ -21,7 +21,6 @@ class Hit(Base):
     sha1 = Column(String)
     sha256 = Column(String)
     rule = Column(String)
-    processed = Column(Integer)
     created_at = Column(DateTime)
     first_source = Column(String)
     first_country = Column(String)

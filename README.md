@@ -13,6 +13,7 @@ VT Hunter Configuration
 ## Dependencies
 * sqlalchemy
 * requests
+* configparser
 
 ## Campaign Translation
 campaign_translation.db contains mappings to do string substitution on campaign names. You might use this if you don't want to put your internal campaign names on VirusTotal in any form (such as a yara rule name). This will allow you to provide an "external_name" (the fake name), which will then be converted to the "internal_name" when the data is processed.

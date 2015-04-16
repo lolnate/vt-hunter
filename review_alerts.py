@@ -91,8 +91,8 @@ def main():
         # Display Help
         stdscr.addstr(scrsize[0] - 4, 1, "COMMANDS", curses.color_pair(1))
         stdscr.addstr(scrsize[0] - 3, 1, "q - quit    r - raw email    d - download", curses.color_pair(1))
-        stdscr.addstr(scrsize[0] - 2, 1, "s - skip", curses.color_pair(1))
-                
+        stdscr.addstr(scrsize[0] - 2, 1, "s - skip    n - do not download", curses.color_pair(1))
+
         c = stdscr.getch()
         # Toggle commands
         commands = []
@@ -106,6 +106,9 @@ def main():
             if c == ord('d'):
                 commands.extend('d')
                 commands.extend('s')
+            if c == ord('n'):
+                commands.extend('n')
+                commands.extend('s')
 
         # Process commands
         if 'q' in commands:
@@ -114,6 +117,10 @@ def main():
         if 'd' in commands:
             # 1 = Download
             current_dl.process_state = 1
+            hunting.sess.commit()
+        if 'n' in commands:
+            # 5 = Do Not Download
+            current_dl.process_state = 5
             hunting.sess.commit()
         if 's' in commands:
             toggle_raw = False
