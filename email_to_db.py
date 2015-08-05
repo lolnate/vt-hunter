@@ -11,35 +11,40 @@ import os, sys, time
 import re
 import email
 import uuid
-import StringIO
 import datetime
 import lib.hunting as hunting
 
+from lib.constants import VT_HOME
 from lib.vtmis.utilities import *
 from lib.vtmis.scoring import *
 from configparser import ConfigParser
+from io import StringIO
 
 try:
     config = ConfigParser()
-    config.read('local_settings.ini')
+    config.read(os.path.join(VT_HOME, "etc", "vt.ini"))
 except ImportError:
-    raise SystemExit('local_settings.ini was not found or was not accessible.')
+    raise SystemExit('vt.ini was not found or was not accessible.')
 
 scoring = get_scoring_dict()
 incoming_emails = config.get("locations", "incoming_emails")
 processed_emails = config.get("locations", "processed_emails")
+failed_emails = config.get("locations", "failed_emails")
 raw_msgs = config.get("locations", "raw_msgs")
 
 # These are new incoming emails
 if not os.path.exists(incoming_emails):
-    print "There is no incoming email directory!"
+    print("There is no incoming email directory!")
     exit(1)
 # This is where archived emails go that have already by processed
 if not os.path.exists(processed_emails):
     os.mkdir(processed_emails)
-# This is where raw messages for Alertweb go
+# This is where raw messages go
 if not os.path.exists(raw_msgs):
     os.mkdir(raw_msgs)
+# This is where failed messages go
+if not os.path.exists(failed_emails):
+    os.mkdir(failed_emails)
 # Limit for the number of emails to process this time. Mainly used for testing.
 # Set to 0 for unlimited.
 LIMIT = 0
@@ -65,7 +70,7 @@ for f in os.listdir(incoming_emails):
         continue
     if total_processed % 100 == 0:
         # TODO: This will not complete if the number of emails is too small.
-        print "Processed " + str(total_processed) + " / " + str(incoming_count)
+        print("Processed " + str(total_processed) + " / " + str(incoming_count))
     total_processed += 1
 
     # Read our email
@@ -93,10 +98,11 @@ for f in os.listdir(incoming_emails):
     if re_rule_match:
         rule = re_rule_match.group(1)
     else:
-        print "Cannot find the appropriate rule match in the email subject, failing."
-        exit(1)
+        print("Cannot find the appropriate rule match in the email subject. Sending email to {0}".format(os.path.join(failed_emails, f)))
+        os.rename(os.path.join(incoming_emails, f), os.path.join(failed_emails, f))
+        continue
 
-    payload = StringIO.StringIO(msg.get_payload())
+    payload = StringIO(msg.get_payload())
     next_sha256 = False
     next_link = False
     raw_msg_text = ""
@@ -170,4 +176,4 @@ for f in os.listdir(incoming_emails):
         fout = open(raw_msgs + raw_email_html, "w")
         fout.write(raw_msg_html)
         fout.close()
-        os.rename(incoming_emails + f, processed_emails + email_archive)
+        os.rename(os.path.join(incoming_emails, f), os.path.join(processed_emails, email_archive))
