@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import curses
 import email
 import os
@@ -74,7 +74,7 @@ def main():
 
     dl_queue = hunting.sess.query(hunting.Download).filter(hunting.Download.process_state == 0).all()
     dl_iter = iter(dl_queue)
-    current_dl = dl_iter.next()
+    current_dl = next(dl_iter)
 
     running = True
     toggle_raw = False
@@ -127,14 +127,14 @@ def main():
         if 's' in commands:
             toggle_raw = False
             try:
-                current_dl = dl_iter.next()
+                current_dl = next(dl_iter)
             except StopIteration:
                 dl_queue = hunting.sess.query(hunting.Download).filter(hunting.Download.process_state == 0).all()
                 if len(dl_queue) < 1:
                     current_dl = None
                 else:
                     dl_iter = iter(dl_queue)
-                    current_dl = dl_iter.next()
+                    current_dl = next(dl_iter)
         if 'r' in commands:
             if toggle_raw:
                 toggle_raw = False
