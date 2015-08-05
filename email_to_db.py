@@ -166,8 +166,6 @@ for f in os.listdir(incoming_emails):
             hunting.sess.commit()
 
         # Convert the raw message to html and write it out
-        # This file will get attached to the alertweb alert as part of the details
-        # page
         if not os.path.exists(raw_msgs + "/" + utctimestr):
             os.mkdir(raw_msgs + "/" + utctimestr)
         if not os.path.exists(processed_emails + "/" + utctimestr):
