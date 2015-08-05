@@ -7,28 +7,29 @@ import os
 import requests
 
 from configparser import ConfigParser
+from lib.constants import VT_DOWNLOADER_VERSION, VT_HOME
 
 class vtAPI():
-    def __init__(self, settings):
+    def __init__(self, config):
         self.base = 'https://www.virustotal.com/vtapi/v2/'
-        self.settings = settings
+        self.config = config
 
     def downloadFile(self, vthash, dl_location):
         try:
-            param = {'hash': md5, 'apikey': self.config.vt.api_local}
-            url = self.base + 'file/download'
-            data = urllib.urlencode(param)
-            req = urllib2.Request(url, data)
-            result = urllib2.urlopen(req)
-            downloadedfile = result.read()
-            if len(downloadedfile) > 0:
-                fout = open(config.get('vt', 'api_local') + name, 'w')
-                fout.write(dl_location + downloadedfile)
-                fout.close()
-                return 0
+            params = {'hash': vthash, 'apikey': self.config.get('vt', 'api_local')}
+            r = requests.get(self.base + 'file/download', params=params)
+            if r.status_code == 200:
+                downloaded_file = r.content
+                if len(downloaded_file) > 0:
+                    fout = open(dl_location + vthash, 'w')
+                    fout.write(downloaded_file)
+                    fout.close()
+                    return 0
             else:
+                print('Received status code {0} and message {1}'.format(r.status_code, r.content))
                 return 1
-        except Exception:
+        except Exception as e:
+            print("Exception: {0}".format(e))
             return 1
 
 def parse_arguments():
@@ -43,19 +44,19 @@ def parse_arguments():
 def main():
     try:
         config = ConfigParser()
-        config.read('local_settings.ini')
+        config.read(os.path.join(VT_HOME, "etc", "vt.ini"))
     except ImportError:
-        raise SystemExit('local_settings.ini was not found or was not accessible.')
+        raise SystemExit('vt.ini was not found or was not accessible.')
 
-        os.environ["http_proxy"] = config.get('proxy', 'http')
-        os.environ["https_proxy"] = config.get('proxy', 'https')
+    os.environ["http_proxy"] = config.get('proxy', 'http')
+    os.environ["https_proxy"] = config.get('proxy', 'https')
 
-        options = parse_arguments()
-        vt = vtAPI()
-        if options.download:
-            retcode = vt.downloadFile(md5, config.get('locations', 'downloads'))
-            if retcode > 0:
-                return retcode
+    options = parse_arguments()
+    vt = vtAPI(config)
+    if options.download:
+        retcode = vt.downloadFile(options.vthash, config.get('locations', 'downloads'))
+        if retcode > 0:
+            return retcode
         return 0
 
 if __name__ == '__main__':

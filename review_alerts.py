@@ -2,16 +2,18 @@
 import curses
 import hunting
 import email
+import os
 
 from vtmis.scoring import *
+from lib.constants import VT_HUNTER_VERSION, VT_HOME
 
 from configparser import ConfigParser
 
 try:
     config = ConfigParser()
-    config.read('local_settings.ini')
+    config.read(os.path.join(VT_HOME, "etc", "vt.ini"))
 except ImportError:
-    raise SystemExit('local_settings.ini was not found or was not accessible.')
+    raise SystemExit('vt.ini was not found or was not accessible.')
 
 raw_msgs = config.get("locations", "raw_msgs")
 
@@ -78,7 +80,7 @@ def main():
     toggle_raw = False
     while running:
         stdscr.clear()
-        stdscr.addstr(1,1,"VT HUNTER V0.00001", curses.A_BOLD)
+        stdscr.addstr(1,1,"VT HUNTER V{0}".format(VT_HUNTER_VERSION), curses.A_BOLD)
 
         if current_dl is None:
             stdscr.addstr(3,1,"No alerts are available for review!", curses.A_BOLD)

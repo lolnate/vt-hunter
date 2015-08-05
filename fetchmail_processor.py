@@ -3,13 +3,17 @@ import os
 import sys
 import re
 import uuid
+import logging
+import logging.config
+
+from lib.constants import VT_FETCHMAIL_VERSION, VT_HOME
 from configparser import ConfigParser
 
 try:
     config = ConfigParser()
-    config.read('local_settings.ini')
+    config.read(os.path.join(VT_HOME, "etc", "vt.ini"))
 except ImportError:
-    raise SystemExit('local_settings.ini was not found or was not accessible.')
+    raise SystemExit('vt.ini was not found or was not accessible.')
 
 incoming_emails = config.get('locations', 'incoming_emails')
 

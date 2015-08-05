@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import relationship, backref
 
 from configparser import ConfigParser
+from lib.constants import VT_PROCESSOR_VERSION, VT_HOME
 
 import os
 
@@ -58,9 +59,9 @@ class Download(Base):
 
 try:
     config = ConfigParser()
-    config.read('local_settings.ini')
+    config.read(os.path.join(VT_HOME, "etc", "vt.ini"))
 except ImportError:
-    raise SystemExit('local_settings.ini was not found or was not accessible.')
+    raise SystemExit('vt.ini was not found or was not accessible.')
 
 engine = create_engine("sqlite:///{0}".format(config.get("locations", "sqlite_db")))
 Base.metadata.create_all(engine)
