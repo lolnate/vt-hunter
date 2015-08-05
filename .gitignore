@@ -9,4 +9,7 @@ hashes/
 raw_msgs/
 *-repo
 campaign_translation.db
-vtmis/scoring.py
+lib/vtmis/scoring.py
+log/
+etc/logging.ini
+venv/

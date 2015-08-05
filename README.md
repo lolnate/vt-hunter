@@ -1,19 +1,22 @@
 VT Hunter Configuration
 -----------------------
 
-1. Copy local_settings_example.py to local_settings.py. Open local_settings.py and modify as necessary.
-2. Configure fetchmail to use the fetchmail_processor.py script.
+1. Copy etc/vt_example.ini to etc/vt.ini. Open etc/vt.ini and modify as necessary.
+2. Copy etc/logging_example.ini to etc/logging.ini. Open etc/logging.ini and modify as necessary.
+3. Configure fetchmail to use the fetchmail_processor.py script.
 	a) copy fetchmailrc-example to ~/.fetchmailrc
 	b) modify ~/.fetchmailrc to include your information
 		* You might need to run fetchmail -B 1 -v to find the new SSL fingerprint of the email server and put that in fetchmailrc
-3. Copy campaign_translation_example.db to campaign_translation.db. Modify as necessary. See campaign translation section for details.
-4. Copy vtmis/scoring_example.py to vtmis/scoring.py. Modify vtmis/scoring.py to include weights for your custom campaigns.
-5. The database will be created the first time you run anything that uses it.
+4. Copy campaign_translation_example.db to campaign_translation.db. Modify as necessary. See campaign translation section for details.
+5. Copy vtmis/scoring_example.py to vtmis/scoring.py. Modify vtmis/scoring.py to include weights for your custom campaigns.
+6. The database will be created the first time you run anything that uses it.
 
 ## Dependencies
 * sqlalchemy
 * requests
 * configparser
+
+You may want to use a virtual environment to install your dependencies. You can use pyvenv to set this up.
 
 ## Campaign Translation
 campaign_translation.db contains mappings to do string substitution on campaign names. You might use this if you don't want to put your internal campaign names on VirusTotal in any form (such as a yara rule name). This will allow you to provide an "external_name" (the fake name), which will then be converted to the "internal_name" when the data is processed.
@@ -48,6 +51,8 @@ NOTE: When running in crontab, you need to cd to the vt-hunter directory first. 
 Currently, automation occurs via crontab. You want to automate the following tasks:
 * fetchmail
 * email_to_db.py
+
+You will also want to run the following in a screen session:
 * process_downloads.py
 
 At some point, the functionality of email_to_db.py can be moved to fetchmail_processor.py. I just haven't done this yet.

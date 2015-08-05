@@ -13,10 +13,10 @@ import email
 import uuid
 import StringIO
 import datetime
-import hunting
+import lib.hunting as hunting
 
-from vtmis.utilities import *
-from vtmis.scoring import *
+from lib.vtmis.utilities import *
+from lib.vtmis.scoring import *
 from configparser import ConfigParser
 
 try:

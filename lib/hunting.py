@@ -70,8 +70,8 @@ sess = sessionmaker(bind=engine)()
 
 if __name__ == "__main__":
     results =  sess.query(Hit).all()
-    print results
+    print(results)
     results[0].md5 = "1"
     sess.commit()
     results =  sess.query(Hit).all()
-    print results
+    print(results)

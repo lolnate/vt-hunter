@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import curses
-import hunting
 import email
 import os
+import lib.hunting as hunting
 
-from vtmis.scoring import *
+from lib.vtmis.scoring import *
 from lib.constants import VT_HUNTER_VERSION, VT_HOME
 
 from configparser import ConfigParser
