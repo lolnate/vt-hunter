@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import print_function
 import argparse
 import hashlib
@@ -21,7 +21,7 @@ class vtAPI():
             if r.status_code == 200:
                 downloaded_file = r.content
                 if len(downloaded_file) > 0:
-                    fout = open(dl_location + vthash, 'w')
+                    fout = open(dl_location + vthash, 'wb')
                     fout.write(downloaded_file)
                     fout.close()
                     return 0

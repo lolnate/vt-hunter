@@ -1,4 +1,4 @@
-import analysis
+import lib.analysis
 
 class AnalysisModule(object):
 
@@ -6,6 +6,9 @@ class AnalysisModule(object):
         assert isinstance(config_section, str)
         self.config_section = config_section
 
+    '''
+    Called to start the analysis for the module.
+    '''
     def analyze_sample(self, filename='',tags=[] ):
         raise NotImplementedError("This analysis module was not implemented.")
 

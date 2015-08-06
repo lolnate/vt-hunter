@@ -1,6 +1,10 @@
-import analysis
+import lib.analysis
+import subprocess
+import os, time
+import logging
+import logging.config
+from lib.analysis import analysis
 from subprocess import Popen
-import os
 
 class MWZoo(analysis.AnalysisModule):
 
@@ -47,30 +51,52 @@ class MWZoo(analysis.AnalysisModule):
                                 processing the file where it's at.
           --disable-analysis    Do not analyze files, just add them.
         '''
-        Popen( ['/opt/mwzoo/bin/add-sample', '-s', 'vt', '--comment', 'VirusTotal automated download'] + formatted_tags + [ '-d', mwzoo_dirname, filename ] )
+        logging.info('Launching add-sample for file {0}'.format(filename))
+        subprocess.call( ['/usr/bin/python', '/opt/mwzoo/bin/add-sample', '-s', 'vt', '--comment', 'VirusTotal automated download'] + formatted_tags + [ '-d', mwzoo_dirname, filename ] )
 
-        # Then we need to call the analyze function for the mwzoo. We should have a
-        # configuration option that specifies whether to run the sample through
-        # a sandbox or not.
-        Popen( ['/opt/mwzoo/bin/analyze', '-d', 'cuckoo', mwzoo_dirname + "/" + os.path.basename(filename)] )
+        # Then we need to call the analyze function for the mwzoo. The -d option
+        # tells it not to launch the sandbox analysis.
+        logging.info('Launching mwzoo analyze for file {0}'.format(filename))
+        Popen( ['/usr/bin/python', '/opt/mwzoo/bin/analyze', '-d', 'cuckoo', mwzoo_dirname + "/" + os.path.basename(filename)] )
+        # Dumb hack to make sure the .running file is created in the mwzoo
+        time.sleep(1)
 
+    '''
+    This checks the status of the mwzoo analysis.
+    True - analysis complete
+    False - analysis not complete
+    '''
     def check_status(self, filename='', tags=[]):
         subdir = ''
         if len(tags) > 0:
             subdir = "_".join(sorted(tags))
         # The data directory for the file
         mwzoo_dirname = '/opt/mwzoo/data/vt/' + subdir
+        # If .analysis is NOT found, analysis has not yet started:
+        if not os.path.isdir(os.path.join(mwzoo_dirname, os.path.basename(filename) + '.analysis')):
+            logging.debug('Analysis has not yet started for sample: {0}'.format(os.path.basename(filename)))
+            return False
+        else:
+            logging.debug('Analysis directory found for sample: {0}'.format(os.path.basename(filename)))
+
         # If the name.running file is present the analysis is still running.
         if os.path.isfile(mwzoo_dirname + os.path.basename(filename) + '.running'):
             # Still running
+            logging.debug('Analysis is still running for sample: {0}'.format(os.path.basename(filename)))
             return False
+        else:
+            logging.debug('Running file not found for sample: {0}'.format(os.path.basename(filename)))
 
-        # Analysis complete!
-        print('Analysis complete for {0}'.format(filename))
+        # Otherwise, analysis is complete!
+        logging.info('Analysis complete for {0}'.format(filename))
         return True
 
-    # Called at the end of the processing.
+    '''
+    Called at the end of the processing.
+    We want to remove the file from the vt-hunter downloads directory
+    since it is now stored in our mwzoo instead.
+    '''
     def cleanup(self, filename='', tags=[]):
         # Remove the malware file
-        print("Removing {0}".format(filename))
+        logging.info("Removing {0}".format(filename))
         os.remove(filename)

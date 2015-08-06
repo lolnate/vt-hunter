@@ -16,7 +16,29 @@ VT Hunter Configuration
 * requests
 * configparser
 
-You may want to use a virtual environment to install your dependencies. You can use pyvenv to set this up.
+Make sure you install the python3 version of these dependencies. Feel free to install them from your OS package manager, but instead you may want to use a virtual environment to install your dependencies. You can use pyvenv to set this up for python3.
+
+On Ubuntu 14.04, I had to set this up without pip initially, then I had to install setuptools and pip manually:
+
+```shell
+pyvenv-3.4 --without-pip venv
+source ./venv/bin/activate
+wget https://pypi.python.org/packages/source/s/setuptools/setuptools-3.4.4.tar.gz
+tar -zxvf setuptools-3.4.4.tar.gz 
+cd setuptools-3.4.4/
+python setup.py install
+cd ..
+wget https://pypi.python.org/packages/source/p/pip/pip-1.5.6.tar.gz
+tar -zxvf pip-1.5.6.tar.gz 
+cd pip-1.5.6/
+python setup.py install
+cd ../
+deactivate
+rm -rf setuptools-3.4.4*
+rm -rf pip-1.5.6*
+```
+
+After this, the normal pip install X worked fine.
 
 ## Campaign Translation
 campaign_translation.db contains mappings to do string substitution on campaign names. You might use this if you don't want to put your internal campaign names on VirusTotal in any form (such as a yara rule name). This will allow you to provide an "external_name" (the fake name), which will then be converted to the "internal_name" when the data is processed.
@@ -81,9 +103,14 @@ class YourAnalysisModule(analysis.AnalysisModule):
 	# want to deal with this, just return True
 	print('Analysis completed.')
 	return True
+
+    def cleanup(self, filename='', tags=[]):
+        # This is an additional step to clean up after this analysis module.
+        # You don't necessarily need to do anything here
+        print('Cleanup all the things!')
 ```
 
-You would then add the following section to local_settings.ini:
+You would then add the following section to vt.ini:
 
 ```
 [analysis_module_your_analysis_module]
@@ -93,6 +120,9 @@ enabled = yes
 ```
 
 Notice the "your_analysis_module" parts are the exact same as your_analysis_module.py. This convention is important to follow.
+
+lib/analysis/mwzoo.py contains a real example for an analysis module that submits each sample to a custom analysis engine. 
+lib/analysis/downloader.py contains a simple example that downloads the malware file and moves it to a different working directory.
 
 ## Optional malware selection process
 * TODO: Configure "no review", aka direct download from email hits. Based on keywords from the rule name perhaps?
