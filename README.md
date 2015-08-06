@@ -1,3 +1,11 @@
+VT Hunter Overview
+------------------
+VT Hunter provides automation around the Virus Total Intelligence service. It attempts to speed up the review process for your hunting alerts so you can quickly decide whether to download or ignore a particular alert. Currently, it runs in a Linux server environment and contains a fancy curses gui where you make your decisions. All other processes run seemlessly in the background and take care of things like: pulling your hunting alerts, organizing the data, downloading malware samples, and submitting samples for analysis.
+
+![review_alerts.py screenshot](https://magicked.github.io/images/review_alerts.png)
+
+As you make a decision on each alert, a new one is displayed and the old one is handled in the background.
+
 VT Hunter Configuration
 -----------------------
 
