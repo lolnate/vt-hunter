@@ -60,6 +60,25 @@ def display_raw(stdscr, dl):
         stdscr.addstr(line_num + 2,2,line)
         line_num += 1
 
+def process_grab(command, current_dl):
+    # Get the rules for this current md5
+    hits = hunting.sess.query(hunting.Hit).filter(hunting.Hit.md5 == current_dl.md5).all()
+    rules = []
+    for hit in hits:
+        rules.extend(hit.rule)
+
+
+def process_download(current_dl):
+    # 1 = Download
+    current_dl.process_state = 1
+    hunting.sess.commit()
+
+
+def process_nodownload(current_dl):
+    # 5 = Do Not Download
+    current_dl.process_state = 5
+    hunting.sess.commit()
+
 def main():
     stdscr = curses.initscr()
     curses.noecho()
@@ -75,9 +94,12 @@ def main():
     dl_queue = hunting.sess.query(hunting.Download).filter(hunting.Download.process_state == 0).all()
     dl_iter = iter(dl_queue)
     current_dl = next(dl_iter)
+    current_num = 0
+    max_num = len(dl_queue)
 
     running = True
     toggle_raw = False
+    toggle_grab = False
     while running:
         stdscr.clear()
         stdscr.addstr(1,1,"VT HUNTER V{0}".format(VT_HUNTER_VERSION), curses.A_BOLD)
@@ -85,6 +107,7 @@ def main():
         if current_dl is None:
             stdscr.addstr(3,1,"No alerts are available for review!", curses.A_BOLD)
         else:
+            current_num += 1
             if toggle_raw:
                 display_raw(stdscr, current_dl)
             else:
@@ -92,8 +115,17 @@ def main():
 
         # Display Help
         stdscr.addstr(scrsize[0] - 4, 1, "COMMANDS", curses.color_pair(1))
-        stdscr.addstr(scrsize[0] - 3, 1, "q - quit    r - raw email    d - download", curses.color_pair(1))
-        stdscr.addstr(scrsize[0] - 2, 1, "s - skip    n - do not download", curses.color_pair(1))
+        if not toggle_grab:
+            stdscr.addstr(scrsize[0] - 3, 1, "q - quit    r - raw email          d - download", curses.color_pair(1))
+        else:
+            stdscr.addstr(scrsize[0] - 3, 1, "q - quit    d - download", curses.color_pair(1))
+        if not toggle_grab:
+            stdscr.addstr(scrsize[0] - 2, 1, "s - skip    n - do not download    g - grab tags", curses.color_pair(1))
+        else:
+            stdscr.addstr(scrsize[0] - 2, 1, "s - skip    n - do not download    g - cancel grab", curses.color_pair(1))
+
+        # Display the number of alerts left
+        stdscr.addstr(scrsize[0] - 6, 1, "{0} / {1} Alerts".format(current_num, len(dl_queue)), curses.color_pair(1))
 
         c = stdscr.getch()
         # Toggle commands
@@ -104,28 +136,38 @@ def main():
             if c == ord('s'):
                 commands.extend('s')
             if c == ord('r'):
-                commands.extend('r')
+                if not toggle_grab:
+                    commands.extend('r')
             if c == ord('d'):
                 commands.extend('d')
                 commands.extend('s')
             if c == ord('n'):
                 commands.extend('n')
                 commands.extend('s')
+            if c == ord('g'):
+                if toggle_grab:
+                    toggle_grab = False
+                else:
+                    toggle_grab = True
 
         # Process commands
         if 'q' in commands:
             running = False
             break
         if 'd' in commands:
-            # 1 = Download
-            current_dl.process_state = 1
-            hunting.sess.commit()
+            if toggle_grab:
+                process_grab('d', current_dl)
+            else:
+                process_download(current_dl)
         if 'n' in commands:
-            # 5 = Do Not Download
-            current_dl.process_state = 5
-            hunting.sess.commit()
+            if toggle_grab:
+                process_grab('n', current_dl)
+            else:
+                process_nodownload(current_dl)
         if 's' in commands:
             toggle_raw = False
+            # TODO: Do we want to allow skipping a grabbed set of tags?
+            toggle_grab = False
             try:
                 current_dl = next(dl_iter)
             except StopIteration:
