@@ -7,7 +7,7 @@ import logging
 import logging.config
 import lib.hunting as hunting
 
-from lib.constants import VT_PROCESSOR_VERSION, VT_HOME
+from lib.constants import VT_VERSION, VT_HOME
 from subprocess import call
 from configparser import ConfigParser
 
@@ -24,7 +24,7 @@ def processor_init():
     global config
     global downloads_dir
 
-    log.debug("Running VT Processor version {0}".format(VT_PROCESSOR_VERSION))
+    log.debug("Running VT Processor version {0}".format(VT_VERSION))
     try:
         config = ConfigParser()
         config.read(os.path.join(VT_HOME, "etc", "vt.ini"))
@@ -147,7 +147,7 @@ def check_analysis():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-v", "--version", action="version", version="You are running VT processor {0}".format(VT_PROCESSOR_VERSION))
+    parser.add_argument("-v", "--version", action="version", version="You are running VT processor {0}".format(VT_VERSION))
     args = parser.parse_args()
 
     running = True

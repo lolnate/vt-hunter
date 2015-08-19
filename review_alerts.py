@@ -5,7 +5,7 @@ import os
 import lib.hunting as hunting
 
 from lib.vtmis.scoring import *
-from lib.constants import VT_HUNTER_VERSION, VT_HOME
+from lib.constants import VT_VERSION, VT_HOME
 
 from configparser import ConfigParser
 
@@ -102,7 +102,7 @@ def main():
     toggle_grab = False
     while running:
         stdscr.clear()
-        stdscr.addstr(1,1,"VT HUNTER V{0}".format(VT_HUNTER_VERSION), curses.A_BOLD)
+        stdscr.addstr(1,1,"VT HUNTER V{0}".format(VT_VERSION), curses.A_BOLD)
 
         if current_dl is None:
             stdscr.addstr(3,1,"No alerts are available for review!", curses.A_BOLD)

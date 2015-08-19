@@ -7,7 +7,7 @@ import os
 import requests
 
 from configparser import ConfigParser
-from lib.constants import VT_DOWNLOADER_VERSION, VT_HOME
+from lib.constants import VT_VERSION, VT_HOME
 
 class vtAPI():
     def __init__(self, config):

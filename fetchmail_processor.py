@@ -6,7 +6,7 @@ import uuid
 import logging
 import logging.config
 
-from lib.constants import VT_FETCHMAIL_VERSION, VT_HOME
+from lib.constants import VT_VERSION, VT_HOME
 from configparser import ConfigParser
 
 try:
