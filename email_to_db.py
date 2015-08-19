@@ -26,6 +26,8 @@ try:
 except ImportError:
     raise SystemExit('vt.ini was not found or was not accessible.')
 
+# TODO: Add real logging
+
 scoring = get_scoring_dict()
 incoming_emails = config.get("locations", "incoming_emails")
 processed_emails = config.get("locations", "processed_emails")
@@ -162,8 +164,27 @@ for f in os.listdir(incoming_emails):
             # Now we write all the data we scraped to the DB
             hit = hunting.Hit(md5=md5, sha1=sha1, sha256=sha256, rule=rule, created_at=created_at, first_source=first_source, first_country=first_country, file_type=filetype, first_source_type=first_source_type, orig_file_name=orig_file_name, raw_email_html=raw_email_html, email_archive=email_archive, score=get_string_score(rule), download=dl)
             dl.score += hit.score
+            #print("Inserting hit with md5 {0} and rule {1}".format(md5, rule))
             hunting.sess.add(hit)
             hunting.sess.commit()
+
+            # Now we need to create the tags entry
+            # Obtain and make unique the tags
+            tag_list = []
+            tag_list.extend(hit.rule.split('_'))
+            tags = set(tag_list)
+
+            for tag_str in tags:
+                tag = hunting.sess.query(hunting.Tag).filter(hunting.Tag.tag == tag_str).first()
+                if tag is None:
+                    #print("Inserting tag {0}".format(tag_str))
+                    tag = hunting.Tag(tag=tag_str)
+                    hunting.sess.add(tag)
+                    hunting.sess.commit()
+                if tag not in dl.tags:
+                    #print("Linking tag {0} to dl {1}".format(tag_str, dl.md5))
+                    dl.tags.append(tag)
+                    hunting.sess.commit()
 
         # Convert the raw message to html and write it out
         if not os.path.exists(raw_msgs + "/" + utctimestr):
@@ -175,3 +196,5 @@ for f in os.listdir(incoming_emails):
         fout.write(raw_msg_html)
         fout.close()
         os.rename(os.path.join(incoming_emails, f), os.path.join(processed_emails, email_archive))
+
+print("Processed " + str(total_processed) + " / " + str(incoming_count))
