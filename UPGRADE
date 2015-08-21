@@ -1,0 +1,9 @@
+Version 0.000001337 to 0.11
+===========================
+- Added a new table "Tag" to track tags associated with downloads.
+- Upgrade required:
+1) Stop all crontab or other automation
+2) Pull new code
+3) Copy migrate_0.11.py from the migrate/ directory to your root installation directory.
+4) Run migrate_0.11.py. This may take some time depending on how big your DB is.
+5) Restart automation! Remove migrate_0.11.py.

@@ -1,0 +1,7 @@
+Version 0.11
+============
+- Added a new table "Tag" to track tags associated with downloads.
+- Added a progress count to review_alerts.py.
+- Added the ability to grab "tags" in review_alerts.py and then do a bulk action on anything matching the grabbed tags.
+- Separated out a release branch on git.
+- Consolidated versions to a single version for the entire project. I don't know why I broke it out in the first place.

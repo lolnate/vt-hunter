@@ -6,6 +6,10 @@ VT Hunter provides automation around the Virus Total Intelligence service. It at
 
 As you make a decision on each alert, a new one is displayed and the old one is handled in the background.
 
+RELEASE and UPGRADE
+-------------------
+A new branch has been added to track the first actual release. Please see the UPGRADE and RELEASE files for more information. If you have used vt-hunter in its previous state, you must migrate the DB.
+
 VT Hunter Configuration
 -----------------------
 
