@@ -21,7 +21,8 @@ VT Hunter Configuration
 		* You might need to run fetchmail -B 1 -v to find the new SSL fingerprint of the email server and put that in fetchmailrc
 4. Copy campaign_translation_example.db to campaign_translation.db. Modify as necessary. See campaign translation section for details.
 5. Copy vtmis/scoring_example.py to vtmis/scoring.py. Modify vtmis/scoring.py to include weights for your custom campaigns.
-6. The database will be created the first time you run anything that uses it.
+6. Write your own analysis module! See [Analysis Modules](## Analysis Modules) section.
+7. The database will be created the first time you run anything that uses it.
 
 ## Dependencies
 * sqlalchemy
@@ -75,6 +76,7 @@ scoring.py can be implemented in any way you see fit. The default implementation
 2. Process the emails with email_to_db.py
 3. Review alerts with review_alerts.py
 4. Download and submit samples to your analysis module with process_downloads.py
+5. Run the collect_distribution.py script to download and store data from the live distribution feed. (Need unlimited API key)
 
 NOTE: When running in crontab, you need to cd to the vt-hunter directory first. Like so:
 ```
@@ -88,6 +90,7 @@ Currently, automation occurs via crontab. You want to automate the following tas
 
 You will also want to run the following in a screen session:
 * process_downloads.py
+* collection_distribution.py (Need unlimited API key)
 
 At some point, the functionality of email_to_db.py can be moved to fetchmail_processor.py. I just haven't done this yet.
 
@@ -96,7 +99,7 @@ process_downloads.py is capable of submitting downloaded samples to any automate
 * Create your_analysis_module.py in analysis/
 ** Implement the methods in analysis.py
 * Add your_analysis_module to analysis/__init__.py
-* Add your_analysis_module section to local_settings.ini
+* Add your_analysis_module section to vt.ini
 
 For example, if your_analysis_module looked like the following:
 
