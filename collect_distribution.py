@@ -15,7 +15,7 @@ from datetime import datetime
 log_path = os.path.join(VT_HOME, "etc", "logging.ini")
 try:
     logging.config.fileConfig(log_path)
-    log = logging.getLogger("processDownloads")
+    log = logging.getLogger("collectDistribution")
 except Exception as e:
     raise SystemExit("unable to load logging configuration file {0}: {1}".format(log_path, str(e)))
 
