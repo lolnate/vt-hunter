@@ -1,7 +1,7 @@
 import sqlalchemy
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, DateTime, Text, Table
+from sqlalchemy import Column, Integer, String, DateTime, Text, Date, Boolean, Table
 from sqlalchemy import create_engine
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import sessionmaker
@@ -18,6 +18,11 @@ DownloadTag = Table('download_tag', Base.metadata,
     Column('tagId', Integer, ForeignKey('tag.id'), primary_key=True),
     Column('downloadId', Integer, ForeignKey('download.id'), primary_key=True)
     )
+
+#VTSampleTag = Table('vt_sample_tag', Base.metadata,
+#    Column('tagId', Integer, ForeignKey('vt_tag.id'), primary_key=True),
+#    Column('sampleId', Integer, ForeignKey('vt_sample.id'), primary_key=True)
+#    )
 
 class Hit(Base):
     __tablename__ = "hunting"
@@ -75,15 +80,55 @@ class Tag(Base):
         return "<Tag(%d, %s)>" % (self.id, self.tag)
 
 
-#class DownloadTag(Base):
-#    __tablename__ = "download_tag"
+class VTSample(Base):
+    __tablename__ = "vt_sample"
+
+    id = Column(Integer, primary_key=True)
+    md5 = Column(String)
+    sha1 = Column(String)
+    sha256 = Column(String)
+    size = Column(Integer)
+    type = Column(String)
+    vhash = Column(String)
+    ssdeep = Column(String)
+    link = Column(String)
+    source_country = Column(String)
+    first_seen = Column(DateTime)
+    last_seen = Column(DateTime)
+    source_id = Column(String)
+    orig_filename = Column(String)
+    timestamp = Column(String)
+    tags = Column(String)
+
+    #tags = relationship('VTTag', secondary=VTSampleTag, backref='vt_sample')
+
+    def __repr__(self):
+        return "<VTSample(%d, %s)>" % (self.id, self.md5)
+
+
+#class VTTag(Base):
+#    __tablename__ = "vt_tag"
 #
 #    id = Column(Integer, primary_key=True)
-#    download = relationship("Download", backref=backref('download_tag', order_by=id))
-#    tag = relationship("Tag", backref=backref('download_tag', order_by=id))
+#    tag = Column(String)
+#    vt_samples = relationship('VTSample', secondary=VTSampleTag, backref='vt_tag')
 #
 #    def __repr__(self):
-#        return "<DownloadTag(%d)>" % (self.id)
+#        return "<VTTag(%d, %s)>" % (self.id, self.tag)
+#
+#
+#class VTReport(Base):
+#    __tablename__ = "vt_report"
+#
+#    id = Column(Integer, primary_key=True)
+#    sample_id = Column(String, ForeignKey('vt_sample.id'))
+#    signature = Column(String)
+#    detected = Column(Boolean)
+#    vendor_name = Column(String)
+#    version = Column(String)
+#    date = Column(Date)
+#
+#    vt_sample = relationship("VTSample", backref=backref('vt_reports', order_by=id))
 
 
 try:
@@ -92,6 +137,7 @@ try:
 except ImportError:
     raise SystemExit('vt.ini was not found or was not accessible.')
 
+global engine
 engine = create_engine("sqlite:///{0}".format(config.get("locations", "sqlite_db")))
 Base.metadata.create_all(engine)
 sess = sessionmaker(bind=engine)()
@@ -104,3 +150,10 @@ if __name__ == "__main__":
     sess.commit()
     results =  sess.query(Hit).all()
     print(results)
+
+def insert_vt_sample(statement):
+    engine.execute(
+        VTSample.__table__.insert(),
+        statement
+    )
+
